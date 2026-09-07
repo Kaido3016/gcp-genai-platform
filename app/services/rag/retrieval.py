@@ -17,13 +17,29 @@ rather than added as unused complexity.
 
 from __future__ import annotations
 
+import re
+
 from app.core.config import RetrievalConfig
 from app.core.exceptions import RetrievalError
 from app.schemas.documents import RetrievedChunk
 
+_WORD_PATTERN = re.compile(r"[a-z0-9]+")
+
 
 def _tokenize(text: str) -> set[str]:
-    return set(text.lower().split())
+    """Extracts alphanumeric word tokens, ignoring case and punctuation.
+
+    Deliberately not a plain `text.lower().split()`: whitespace-only
+    splitting treats "dog" and "dog!" (or "dog," / "dog.") as distinct
+    tokens, which silently defeats near-duplicate detection for chunks
+    that differ only by trailing/embedded punctuation — exactly the kind
+    of superficial variation this function exists to see past (e.g. the
+    same sentence appearing at a chunk boundary with vs. without its
+    closing punctuation). Regex-based word extraction is used elsewhere
+    in this codebase for the same reason (see
+    app/services/ai/local_backend.py's `_hash_embed`).
+    """
+    return set(_WORD_PATTERN.findall(text.lower()))
 
 
 def _jaccard_similarity(a: str, b: str) -> float:

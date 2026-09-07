@@ -18,6 +18,7 @@ from typing import Any
 from pydantic import BaseModel, ValidationError
 
 from app.core.exceptions import (
+    AgentError,
     ToolAuthorizationError,
     ToolExecutionError,
     ToolInputValidationError,
@@ -72,7 +73,7 @@ class ToolRegistry:
             return ToolResult(call_id=call_id, tool=name, success=False, error=str(exc))
 
         if not tool.allowed_for_all and not context.get("is_privileged"):
-            err = ToolAuthorizationError(f"Not authorized to use tool '{name}'.")
+            err: AgentError = ToolAuthorizationError(f"Not authorized to use tool '{name}'.")
             return ToolResult(call_id=call_id, tool=name, success=False, error=str(err))
 
         schema_cls = TOOL_ARG_SCHEMAS[name]

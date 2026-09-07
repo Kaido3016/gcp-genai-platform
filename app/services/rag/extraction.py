@@ -35,7 +35,7 @@ def _extract_pdf(content: bytes) -> list[tuple[int | None, str]]:
 
     try:
         reader = PdfReader(io.BytesIO(content))
-        pages = []
+        pages: list[tuple[int | None, str]] = []
         for i, page in enumerate(reader.pages, start=1):
             text = page.extract_text() or ""
             if text.strip():

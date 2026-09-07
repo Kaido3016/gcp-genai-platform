@@ -58,7 +58,12 @@ def _validate_params(schema: dict[str, Any], params: dict[str, Any]) -> str | No
         if field_name not in params:
             return f"missing required field: {field_name}"
 
-    type_map = {"string": str, "integer": int, "number": (int, float), "boolean": bool}
+    type_map: dict[str, type | tuple[type, ...]] = {
+        "string": str,
+        "integer": int,
+        "number": (int, float),
+        "boolean": bool,
+    }
     for field_name, value in params.items():
         prop = schema.get("properties", {}).get(field_name)
         if not prop:

@@ -11,6 +11,7 @@ from __future__ import annotations
 
 import ast
 import operator
+from collections.abc import Callable
 from typing import Any
 
 from pydantic import BaseModel
@@ -19,7 +20,7 @@ from app.core.exceptions import ToolExecutionError
 from app.schemas.agent import CalculatorArgs, ToolName
 from app.services.agent.tools.base import Tool
 
-_ALLOWED_BINOPS = {
+_ALLOWED_BINOPS: dict[type[ast.operator], Callable[[Any, Any], Any]] = {
     ast.Add: operator.add,
     ast.Sub: operator.sub,
     ast.Mult: operator.mul,
@@ -27,7 +28,10 @@ _ALLOWED_BINOPS = {
     ast.Pow: operator.pow,
     ast.Mod: operator.mod,
 }
-_ALLOWED_UNARYOPS = {ast.UAdd: operator.pos, ast.USub: operator.neg}
+_ALLOWED_UNARYOPS: dict[type[ast.unaryop], Callable[[Any], Any]] = {
+    ast.UAdd: operator.pos,
+    ast.USub: operator.neg,
+}
 
 
 def _safe_eval(node: ast.AST) -> float:

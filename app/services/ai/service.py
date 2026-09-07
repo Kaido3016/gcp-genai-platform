@@ -153,7 +153,7 @@ class DefaultAIService(AIService):
                 raise StructuredOutputValidationError(f"Missing required field: {field}")
 
         props = schema.get("properties", {})
-        type_map = {
+        type_map: dict[str, type | tuple[type, ...]] = {
             "string": str,
             "integer": int,
             "number": (int, float),

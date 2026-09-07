@@ -130,15 +130,16 @@ class MCPClient:
 
     def _read_response_with_timeout(self) -> str:
         """Read one line from subprocess stdout with a hard timeout."""
-        result: dict[str, str | Exception] = {}
+        read_line: str | None = None
+        read_error: Exception | None = None
         done = threading.Event()
 
         def _reader() -> None:
+            nonlocal read_line, read_error
             try:
-                line = self._process.stdout.readline()  # type: ignore[union-attr]
-                result["line"] = line
+                read_line = self._process.stdout.readline()  # type: ignore[union-attr]
             except Exception as exc:  # noqa: BLE001
-                result["error"] = exc
+                read_error = exc
             finally:
                 done.set()
 
@@ -152,12 +153,11 @@ class MCPClient:
                 f"MCP call exceeded client-side timeout of {self._call_timeout_seconds}s"
             )
 
-        if "error" in result:
-            raise ToolExecutionError(f"Error reading from MCP server: {result['error']}")
+        if read_error is not None:
+            raise ToolExecutionError(f"Error reading from MCP server: {read_error}")
 
-        line = result.get("line", "")
-        if not line:
+        if not read_line:
             raise ToolExecutionError(
                 "MCP server closed its output stream unexpectedly (empty read)."
             )
-        return line
+        return read_line

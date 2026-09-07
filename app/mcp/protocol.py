@@ -25,15 +25,10 @@ from typing import Any
 
 JSONRPC_VERSION = "2.0"
 
-# --- MCP method names (the subset this project implements) -----------------
-
 METHOD_INITIALIZE = "initialize"
 METHOD_TOOLS_LIST = "tools/list"
 METHOD_TOOLS_CALL = "tools/call"
-
 SUPPORTED_METHODS = {METHOD_INITIALIZE, METHOD_TOOLS_LIST, METHOD_TOOLS_CALL}
-
-# --- Standard JSON-RPC 2.0 error codes --------------------------------------
 
 PARSE_ERROR = -32700
 INVALID_REQUEST = -32600
@@ -41,7 +36,6 @@ METHOD_NOT_FOUND = -32601
 INVALID_PARAMS = -32602
 INTERNAL_ERROR = -32603
 
-# MCP/application-specific error codes (outside the reserved JSON-RPC range).
 TOOL_NOT_FOUND = -32001
 TOOL_UNAUTHORIZED = -32002
 TOOL_TIMEOUT = -32003
@@ -65,7 +59,7 @@ class JsonRpcRequest:
         )
 
     @staticmethod
-    def from_dict(data: dict) -> "JsonRpcRequest":
+    def from_dict(data: dict) -> JsonRpcRequest:
         if data.get("jsonrpc") != JSONRPC_VERSION or "method" not in data:
             raise ProtocolParseError(f"Malformed JSON-RPC request: {data!r}")
         return JsonRpcRequest(
@@ -102,7 +96,7 @@ class JsonRpcResponse:
         return json.dumps(payload)
 
     @staticmethod
-    def from_dict(data: dict) -> "JsonRpcResponse":
+    def from_dict(data: dict) -> JsonRpcResponse:
         if data.get("jsonrpc") != JSONRPC_VERSION:
             raise ProtocolParseError(f"Malformed JSON-RPC response: {data!r}")
         err = None
@@ -113,9 +107,7 @@ class JsonRpcResponse:
 
 
 def parse_line(line: str) -> dict:
-    """Parses one newline-delimited JSON-RPC message. Raises
-    ProtocolParseError on invalid JSON rather than letting a raw
-    JSONDecodeError propagate — callers get one exception type to handle."""
+    """Parse one newline-delimited JSON-RPC message."""
     try:
         return json.loads(line)
     except json.JSONDecodeError as exc:

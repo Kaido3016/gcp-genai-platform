@@ -1,13 +1,10 @@
-"""Small, explicit retry-with-backoff helper.
-
-Phase 15 requirement: graceful handling of transient Vertex AI failures
-with exponential backoff, without hiding non-retryable errors.
-"""
+"""Small, explicit retry-with-backoff helper."""
 
 from __future__ import annotations
 
 import time
-from typing import Callable, TypeVar
+from collections.abc import Callable
+from typing import TypeVar
 
 T = TypeVar("T")
 
@@ -27,14 +24,12 @@ def call_with_retry(
     retryable_exceptions: tuple[type[Exception], ...],
     sleep_fn: Callable[[float], None] = time.sleep,
 ) -> T:
-    """Runs `fn`, retrying only on `retryable_exceptions` with exponential
-    backoff (backoff_base * 2**attempt). Non-retryable exceptions propagate
-    immediately. Raises RetryExhaustedError if all attempts fail."""
+    """Run `fn`, retrying only on configured transient exceptions."""
     last_error: Exception | None = None
     for attempt in range(max_retries + 1):
         try:
             return fn()
-        except retryable_exceptions as exc:  # noqa: PERF203 - clarity over micro-perf
+        except retryable_exceptions as exc:  # noqa: PERF203
             last_error = exc
             if attempt == max_retries:
                 break

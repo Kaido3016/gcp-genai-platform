@@ -7,19 +7,15 @@ agent loop in app/services/agent/agent.py.
 
 from __future__ import annotations
 
-from enum import Enum
+from enum import StrEnum
 from typing import Any, Literal
 
 from pydantic import BaseModel, Field
 
 
-class ToolName(str, Enum):
+class ToolName(StrEnum):
     RAG_SEARCH = "rag_search"
     CALCULATOR = "calculator"
-    # MCP-backed tools (app/services/agent/tools/mcp_tool.py) — the agent
-    # loop treats these identically to native tools; only the tool's
-    # `run()` implementation knows it's actually talking to an MCP server
-    # subprocess. See docs/MCP.md for the architecture.
     MCP_TEXT_STATS = "mcp_text_stats"
     MCP_CURRENT_DATETIME = "mcp_current_datetime"
 
@@ -39,7 +35,7 @@ class ToolResult(BaseModel):
     duration_ms: float = 0.0
 
 
-class AgentStepKind(str, Enum):
+class AgentStepKind(StrEnum):
     THOUGHT = "thought"
     TOOL_CALL = "tool_call"
     TOOL_RESULT = "tool_result"
@@ -67,9 +63,6 @@ class AgentResponse(BaseModel):
     latency_ms: float
 
 
-# --- Tool argument schemas (validated before execution) --------------------
-
-
 class RagSearchArgs(BaseModel):
     query: str = Field(min_length=1, max_length=1000)
     top_k: int = Field(default=5, ge=1, le=20)
@@ -88,10 +81,7 @@ class McpTextStatsArgs(BaseModel):
 
 
 class McpCurrentDatetimeArgs(BaseModel):
-    """No parameters — kept as an explicit empty schema (rather than
-    accepting `dict[str, Any]` untyped) so it's validated the same way
-    every other tool's arguments are, and so an unexpected/malicious
-    field is rejected rather than silently ignored."""
+    """No parameters; unexpected fields are rejected."""
 
     model_config = {"extra": "forbid"}
 

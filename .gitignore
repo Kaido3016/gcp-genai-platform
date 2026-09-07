@@ -12,3 +12,5 @@ build/
 dist/
 evaluation/results/latest_run.json
 node_modules/
+GCP/
+.idea/

@@ -1,0 +1,4 @@
+google-genai>=0.3.0
+google-cloud-aiplatform>=1.70
+google-cloud-storage>=2.18
+google-cloud-logging>=3.11

@@ -1,0 +1,82 @@
+{
+  "passed": 15,
+  "total": 15,
+  "all_passed": true,
+  "checks": [
+    {
+      "name": "server: initialize",
+      "passed": true,
+      "duration_ms": 0.0
+    },
+    {
+      "name": "server: tools/list exposes exactly text_stats + current_datetime",
+      "passed": true,
+      "duration_ms": 0.0
+    },
+    {
+      "name": "server: text_stats computes correct word count",
+      "passed": true,
+      "duration_ms": 3.8
+    },
+    {
+      "name": "server: unknown tool -> structured TOOL_NOT_FOUND error",
+      "passed": true,
+      "duration_ms": 0.0
+    },
+    {
+      "name": "server: missing required field -> INVALID_PARAMS",
+      "passed": true,
+      "duration_ms": 0.0
+    },
+    {
+      "name": "server: wrong argument type -> INVALID_PARAMS",
+      "passed": true,
+      "duration_ms": 0.0
+    },
+    {
+      "name": "server: slow handler -> TOOL_TIMEOUT enforced",
+      "passed": true,
+      "duration_ms": 3001.0
+    },
+    {
+      "name": "server: test-only tool hidden outside test_mode",
+      "passed": true,
+      "duration_ms": 0.0
+    },
+    {
+      "name": "client+subprocess: tools/list round trip",
+      "passed": true,
+      "duration_ms": 71.9
+    },
+    {
+      "name": "client+subprocess: text_stats round trip",
+      "passed": true,
+      "duration_ms": 41.5
+    },
+    {
+      "name": "client+subprocess: current_datetime round trip",
+      "passed": true,
+      "duration_ms": 40.7
+    },
+    {
+      "name": "client+subprocess: unknown tool raises ToolNotFoundError",
+      "passed": true,
+      "duration_ms": 39.5
+    },
+    {
+      "name": "client+subprocess: invalid params raise ToolExecutionError",
+      "passed": true,
+      "duration_ms": 39.0
+    },
+    {
+      "name": "client: client-side timeout fires and kills subprocess",
+      "passed": true,
+      "duration_ms": 540.0
+    },
+    {
+      "name": "no orphaned MCP server processes remain",
+      "passed": true,
+      "duration_ms": 29.4
+    }
+  ]
+}

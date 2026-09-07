@@ -1,0 +1,75 @@
+{
+  "dataset_name": "rag_eval_set_v1",
+  "description": "Small, hand-authored reproducible eval set: a tiny corpus plus queries with known-relevant documents and expected answer keywords. Intentionally small to be genuinely reviewable rather than impressive-looking.",
+  "corpus": [
+    {
+      "document_id": "doc-vertex-vs",
+      "filename": "vertex_vector_search.txt",
+      "text": "Vertex AI Vector Search is a managed service for high-scale, low-latency approximate nearest neighbor retrieval over dense embedding vectors. It is commonly used as the retrieval backbone for retrieval-augmented generation systems built on Gemini."
+    },
+    {
+      "document_id": "doc-cloud-run",
+      "filename": "cloud_run.txt",
+      "text": "Cloud Run is a fully managed serverless platform that runs stateless containers and automatically scales to zero when there is no traffic, charging only for the resources used during request processing."
+    },
+    {
+      "document_id": "doc-gemini-multimodal",
+      "filename": "gemini_multimodal.txt",
+      "text": "Gemini models accept multimodal input including text, images, audio, and PDF documents, and can reason jointly across these modalities within a single prompt."
+    },
+    {
+      "document_id": "doc-iam",
+      "filename": "iam_basics.txt",
+      "text": "Google Cloud IAM lets administrators grant fine-grained access to resources by assigning roles to principals, following the principle of least privilege for service accounts."
+    }
+  ],
+  "cases": [
+    {
+      "case_id": "q1_vector_search",
+      "query": "What does Vertex AI Vector Search provide?",
+      "relevant_document_ids": ["doc-vertex-vs"],
+      "expected_keywords": ["nearest neighbor", "retrieval"],
+      "expect_grounded": true
+    },
+    {
+      "case_id": "q2_cloud_run_scaling",
+      "query": "Does Cloud Run scale to zero?",
+      "relevant_document_ids": ["doc-cloud-run"],
+      "expected_keywords": ["scale", "zero"],
+      "expect_grounded": true
+    },
+    {
+      "case_id": "q3_gemini_inputs",
+      "query": "What input types can Gemini process?",
+      "relevant_document_ids": ["doc-gemini-multimodal"],
+      "expected_keywords": ["text", "image"],
+      "expect_grounded": true
+    },
+    {
+      "case_id": "q4_iam_roles",
+      "query": "How does IAM grant access in Google Cloud?",
+      "relevant_document_ids": ["doc-iam"],
+      "expected_keywords": ["roles", "least privilege"],
+      "expect_grounded": true
+    },
+    {
+      "case_id": "q5_out_of_corpus",
+      "query": "What is the capital of France?",
+      "relevant_document_ids": [],
+      "expected_keywords": [],
+      "expect_grounded": false
+    }
+  ],
+  "agent_cases": [
+    {
+      "case_id": "a1_math",
+      "query": "What is 17 + 25?",
+      "expected_tool": "calculator"
+    },
+    {
+      "case_id": "a2_document_lookup",
+      "query": "According to the docs, does Cloud Run scale to zero?",
+      "expected_tool": "rag_search"
+    }
+  ]
+}

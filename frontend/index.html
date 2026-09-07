@@ -1,0 +1,258 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<title>GCP GenAI Platform</title>
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<style>
+  :root { --bg:#0b0e14; --panel:#131826; --border:#232c3d; --text:#e6e9ef; --muted:#8b95a7; --accent:#5b8cff; --ok:#3fb950; --err:#f85149; }
+  * { box-sizing: border-box; }
+  body { margin:0; font-family: ui-sans-serif, system-ui, -apple-system, sans-serif; background:var(--bg); color:var(--text); }
+  header { padding: 1rem 1.5rem; border-bottom: 1px solid var(--border); display:flex; align-items:center; justify-content:space-between; }
+  header h1 { font-size: 1.05rem; margin:0; font-weight:600; }
+  header .badge { font-size: 0.75rem; color: var(--muted); border:1px solid var(--border); padding: 0.15rem 0.5rem; border-radius: 999px; }
+  main { display:grid; grid-template-columns: 320px 1fr; gap: 1rem; padding: 1rem; max-width:1200px; margin: 0 auto; }
+  @media (max-width: 800px) { main { grid-template-columns: 1fr; } }
+  .panel { background: var(--panel); border:1px solid var(--border); border-radius: 10px; padding: 1rem; }
+  .panel h2 { font-size: 0.85rem; text-transform: uppercase; letter-spacing: 0.05em; color: var(--muted); margin: 0 0 0.75rem; }
+  input[type=file] { color: var(--muted); font-size: 0.85rem; }
+  button { background: var(--accent); color: white; border: none; border-radius: 6px; padding: 0.5rem 0.9rem; font-size: 0.85rem; cursor: pointer; }
+  button:disabled { opacity: 0.5; cursor: not-allowed; }
+  button.secondary { background: transparent; border: 1px solid var(--border); color: var(--text); }
+  .doc-row { display:flex; justify-content:space-between; align-items:center; padding: 0.4rem 0; border-bottom: 1px solid var(--border); font-size: 0.8rem; }
+  .doc-row:last-child { border-bottom: none; }
+  .status-pill { font-size: 0.7rem; padding: 0.1rem 0.5rem; border-radius: 999px; }
+  .status-indexed { background: rgba(63,185,80,0.15); color: var(--ok); }
+  .status-failed { background: rgba(248,81,73,0.15); color: var(--err); }
+  .status-processing, .status-uploaded, .status-embedding { background: rgba(139,149,167,0.15); color: var(--muted); }
+  .chat-log { display:flex; flex-direction:column; gap: 0.75rem; min-height: 320px; max-height: 60vh; overflow-y:auto; margin-bottom: 0.75rem; }
+  .msg { padding: 0.65rem 0.85rem; border-radius: 8px; font-size: 0.88rem; line-height: 1.4; max-width: 90%; }
+  .msg.user { background: var(--accent); color: white; align-self: flex-end; }
+  .msg.assistant { background: #1b2333; align-self: flex-start; border: 1px solid var(--border); }
+  .msg.system { background: transparent; color: var(--muted); font-size: 0.78rem; align-self: center; }
+  .citations { margin-top: 0.5rem; display:flex; flex-wrap:wrap; gap: 0.35rem; }
+  .citation-chip { font-size: 0.7rem; background: rgba(91,140,255,0.15); color: var(--accent); padding: 0.15rem 0.5rem; border-radius: 999px; }
+  .grounded-tag { font-size: 0.7rem; margin-top: 0.4rem; display:inline-block; color: var(--muted); }
+  .tool-trace { font-size: 0.75rem; color: var(--muted); background: #0e1420; border: 1px dashed var(--border); border-radius: 6px; padding: 0.5rem; margin-top: 0.4rem; }
+  .tool-trace div { padding: 0.1rem 0; }
+  .row { display:flex; gap: 0.5rem; }
+  .row input[type=text] { flex:1; background:#0e1420; border:1px solid var(--border); color: var(--text); border-radius: 6px; padding: 0.55rem 0.7rem; font-size: 0.88rem; }
+  .mode-toggle { display:flex; gap:0.4rem; margin-bottom: 0.75rem; }
+  .mode-toggle button.active { background: var(--accent); }
+  .mode-toggle button:not(.active) { background: transparent; border:1px solid var(--border); color: var(--muted); }
+  .empty { color: var(--muted); font-size: 0.8rem; text-align:center; padding: 1rem 0; }
+  .error-banner { background: rgba(248,81,73,0.12); border: 1px solid rgba(248,81,73,0.4); color: #ffb4b0; padding: 0.5rem 0.75rem; border-radius: 6px; font-size: 0.8rem; margin-bottom: 0.5rem; }
+  .spinner { display:inline-block; width:12px; height:12px; border:2px solid var(--muted); border-top-color: var(--accent); border-radius:50%; animation: spin 0.7s linear infinite; margin-right: 6px; vertical-align: -2px; }
+  @keyframes spin { to { transform: rotate(360deg); } }
+</style>
+</head>
+<body>
+
+<header>
+  <h1>GCP GenAI Platform</h1>
+  <span class="badge" id="backend-badge">checking backend…</span>
+</header>
+
+<main>
+  <section class="panel">
+    <h2>Documents</h2>
+    <input type="file" id="file-input" accept=".pdf,.txt,.md,.docx" />
+    <div style="margin-top:0.5rem;">
+      <button id="upload-btn">Upload</button>
+    </div>
+    <div id="upload-error"></div>
+    <div id="doc-list" style="margin-top:1rem;"></div>
+  </section>
+
+  <section class="panel">
+    <div class="mode-toggle">
+      <button id="mode-chat" class="active">RAG Chat</button>
+      <button id="mode-agent">Agentic AI</button>
+    </div>
+    <div class="chat-log" id="chat-log">
+      <div class="empty">Upload a document, then ask a question about it — or switch to Agentic AI to try tool use (e.g. "what is 12 * 7?").</div>
+    </div>
+    <div id="chat-error"></div>
+    <div class="row">
+      <input type="text" id="chat-input" placeholder="Ask a question…" />
+      <button id="send-btn">Send</button>
+    </div>
+  </section>
+</main>
+
+<script>
+const API_BASE = window.API_BASE || "http://localhost:8080";
+let mode = "chat"; // "chat" | "agent"
+
+const el = (id) => document.getElementById(id);
+const docList = el("doc-list");
+const chatLog = el("chat-log");
+const chatInput = el("chat-input");
+
+async function checkBackend() {
+  try {
+    const res = await fetch(`${API_BASE}/healthz`);
+    const body = await res.json();
+    el("backend-badge").textContent = body.live_vertex_ai
+      ? "connected — live Vertex AI"
+      : "connected — local mock backend";
+  } catch (e) {
+    el("backend-badge").textContent = "backend unreachable";
+  }
+}
+
+function statusPillClass(status) {
+  if (status === "indexed") return "status-indexed";
+  if (status === "failed") return "status-failed";
+  return "status-processing";
+}
+
+function renderDocs(docs) {
+  if (docs.length === 0) {
+    docList.innerHTML = '<div class="empty">No documents uploaded yet.</div>';
+    return;
+  }
+  docList.innerHTML = docs
+    .map(
+      (d) => `
+      <div class="doc-row">
+        <span title="${d.document_id}">${d.filename}</span>
+        <span class="status-pill ${statusPillClass(d.status)}">${d.status}</span>
+      </div>`
+    )
+    .join("");
+}
+
+let uploadedDocs = [];
+
+el("upload-btn").addEventListener("click", async () => {
+  const fileInput = el("file-input");
+  const errorBox = el("upload-error");
+  errorBox.innerHTML = "";
+  if (!fileInput.files.length) return;
+
+  const file = fileInput.files[0];
+  const formData = new FormData();
+  formData.append("file", file);
+
+  const btn = el("upload-btn");
+  btn.disabled = true;
+  btn.innerHTML = '<span class="spinner"></span>Uploading…';
+
+  try {
+    const res = await fetch(`${API_BASE}/documents/upload`, { method: "POST", body: formData });
+    const body = await res.json();
+    if (!res.ok) {
+      throw new Error(body.detail || "Upload failed.");
+    }
+    uploadedDocs.push({ document_id: body.document_id, filename: body.filename, status: body.status });
+    renderDocs(uploadedDocs);
+    fileInput.value = "";
+  } catch (e) {
+    errorBox.innerHTML = `<div class="error-banner">${e.message}</div>`;
+  } finally {
+    btn.disabled = false;
+    btn.textContent = "Upload";
+  }
+});
+
+function addMessage(role, html) {
+  const emptyState = chatLog.querySelector(".empty");
+  if (emptyState) emptyState.remove();
+  const div = document.createElement("div");
+  div.className = `msg ${role}`;
+  div.innerHTML = html;
+  chatLog.appendChild(div);
+  chatLog.scrollTop = chatLog.scrollHeight;
+  return div;
+}
+
+el("mode-chat").addEventListener("click", () => setMode("chat"));
+el("mode-agent").addEventListener("click", () => setMode("agent"));
+
+function setMode(next) {
+  mode = next;
+  el("mode-chat").classList.toggle("active", mode === "chat");
+  el("mode-agent").classList.toggle("active", mode === "agent");
+  chatInput.placeholder =
+    mode === "chat" ? "Ask a question about your documents…" : "Ask something the agent can reason/tool-call about…";
+}
+
+async function sendMessage() {
+  const query = chatInput.value.trim();
+  if (!query) return;
+  chatInput.value = "";
+  el("chat-error").innerHTML = "";
+
+  addMessage("user", escapeHtml(query));
+  const pending = addMessage("assistant", '<span class="spinner"></span>Thinking…');
+
+  const endpoint = mode === "chat" ? "/chat" : "/agent";
+  try {
+    const res = await fetch(`${API_BASE}${endpoint}`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ query }),
+    });
+    const body = await res.json();
+    if (!res.ok) throw new Error(body.detail || "Request failed.");
+
+    if (mode === "chat") {
+      renderChatResponse(pending, body);
+    } else {
+      renderAgentResponse(pending, body);
+    }
+  } catch (e) {
+    pending.remove();
+    el("chat-error").innerHTML = `<div class="error-banner">${e.message}</div>`;
+  }
+}
+
+function renderChatResponse(node, body) {
+  let html = `<div>${escapeHtml(body.answer)}</div>`;
+  html += `<div class="grounded-tag">${body.grounded ? "✓ grounded in retrieved sources" : "⚠ no supporting documents found"}</div>`;
+  if (body.citations && body.citations.length) {
+    html += '<div class="citations">' +
+      body.citations
+        .map((c) => `<span class="citation-chip">${escapeHtml(c.filename)}${c.page ? " p." + c.page : ""} · ${(c.similarity_score * 100).toFixed(0)}%</span>`)
+        .join("") +
+      "</div>";
+  }
+  node.innerHTML = html;
+}
+
+function renderAgentResponse(node, body) {
+  let html = `<div>${escapeHtml(body.answer)}</div>`;
+  const toolSteps = (body.steps || []).filter((s) => s.kind === "tool_call" || s.kind === "tool_result");
+  if (toolSteps.length) {
+    html += '<div class="tool-trace">';
+    for (const step of toolSteps) {
+      if (step.kind === "tool_call") {
+        html += `<div>→ calling <strong>${escapeHtml(step.tool_call.tool)}</strong>(${escapeHtml(JSON.stringify(step.tool_call.arguments))})</div>`;
+      } else if (step.kind === "tool_result") {
+        const ok = step.tool_result && step.tool_result.success;
+        html += `<div>${ok ? "✓" : "✗"} ${escapeHtml(JSON.stringify(step.tool_result ? step.tool_result.output ?? step.tool_result.error : step.content))}</div>`;
+      }
+    }
+    html += "</div>";
+  }
+  html += `<div class="grounded-tag">stopped: ${body.stopped_reason} · iterations: ${body.iterations_used}</div>`;
+  node.innerHTML = html;
+}
+
+function escapeHtml(str) {
+  const div = document.createElement("div");
+  div.textContent = str;
+  return div.innerHTML;
+}
+
+el("send-btn").addEventListener("click", sendMessage);
+chatInput.addEventListener("keydown", (e) => {
+  if (e.key === "Enter") sendMessage();
+});
+
+checkBackend();
+renderDocs(uploadedDocs);
+</script>
+</body>
+</html>

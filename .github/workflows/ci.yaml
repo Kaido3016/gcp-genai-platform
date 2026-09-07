@@ -1,0 +1,94 @@
+name: CI
+
+# NOTE: this workflow configuration has been authored and syntax-checked
+# but NOT executed by GitHub Actions in this environment (no CI account /
+# network access from this sandbox). It will run for real the first time
+# this repo is pushed to GitHub. See FINAL_AUDIT.md for what has and has
+# not actually been executed so far.
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+jobs:
+  lint-and-typecheck:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: "pip"
+      - run: pip install -r requirements-dev.txt
+      - run: ruff check app tests evaluation
+      - run: ruff format --check app tests evaluation
+      - run: mypy app
+
+  unit-and-integration-tests:
+    runs-on: ubuntu-latest
+    needs: lint-and-typecheck
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: "pip"
+      - run: pip install -r requirements-dev.txt
+      - run: pytest tests/unit tests/integration tests/e2e -v --cov=app --cov-report=xml
+      - uses: actions/upload-artifact@v4
+        with:
+          name: coverage-report
+          path: coverage.xml
+
+  evaluation:
+    runs-on: ubuntu-latest
+    needs: unit-and-integration-tests
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: "pip"
+      - run: pip install -r requirements-dev.txt
+      - run: python -m evaluation.run_evaluation
+      - uses: actions/upload-artifact@v4
+        with:
+          name: evaluation-results
+          path: evaluation/results/
+
+  dependency-scan:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - run: pip install pip-audit
+      - run: pip-audit -r requirements.txt -r requirements-gcp.txt
+
+  codeql:
+    runs-on: ubuntu-latest
+    permissions:
+      security-events: write
+      actions: read
+      contents: read
+    steps:
+      - uses: actions/checkout@v4
+      - uses: github/codeql-action/init@v3
+        with:
+          languages: python
+      - uses: github/codeql-action/analyze@v3
+
+  docker-build:
+    runs-on: ubuntu-latest
+    needs: unit-and-integration-tests
+    steps:
+      - uses: actions/checkout@v4
+      - uses: docker/setup-buildx-action@v3
+      - uses: docker/build-push-action@v6
+        with:
+          context: .
+          push: false
+          tags: gcp-genai-platform:ci

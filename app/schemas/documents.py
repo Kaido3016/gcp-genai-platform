@@ -3,13 +3,13 @@
 from __future__ import annotations
 
 import uuid
-from datetime import datetime, timezone
-from enum import Enum
+from datetime import UTC, datetime
+from enum import StrEnum
 
 from pydantic import BaseModel, Field
 
 
-class DocumentStatus(str, Enum):
+class DocumentStatus(StrEnum):
     UPLOADED = "uploaded"
     VALIDATING = "validating"
     PROCESSING = "processing"
@@ -23,7 +23,7 @@ class DocumentMetadata(BaseModel):
     filename: str
     content_type: str
     size_bytes: int
-    uploaded_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
+    uploaded_at: datetime = Field(default_factory=lambda: datetime.now(UTC))
     tenant_id: str | None = Field(
         default=None, description="Owning user/tenant, for scoped retrieval."
     )
@@ -32,12 +32,7 @@ class DocumentMetadata(BaseModel):
 
 
 class Chunk(BaseModel):
-    """A single retrievable unit, carrying full provenance metadata.
-
-    Phase 4 requires every retrieved source to preserve: document ID,
-    filename, page, chunk ID, source, timestamp, and tenant/user ID
-    where applicable — all fields below map directly to that list.
-    """
+    """A single retrievable unit, carrying full provenance metadata."""
 
     chunk_id: str = Field(default_factory=lambda: str(uuid.uuid4()))
     document_id: str
@@ -45,7 +40,7 @@ class Chunk(BaseModel):
     page: int | None = None
     text: str
     source: str = Field(description="e.g. gs://bucket/path or original filename")
-    created_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
+    created_at: datetime = Field(default_factory=lambda: datetime.now(UTC))
     tenant_id: str | None = None
     token_count: int = 0
 

@@ -9,7 +9,7 @@ from __future__ import annotations
 
 from functools import lru_cache
 
-from app.core.config import Settings, get_settings
+from app.core.config import get_settings
 from app.services.agent.agent import Agent
 from app.services.agent.tools.base import ToolRegistry
 from app.services.agent.tools.calculator_tool import CalculatorTool
@@ -63,7 +63,11 @@ def get_ingestion_pipeline() -> IngestionPipeline:
 @lru_cache
 def get_rag_pipeline() -> RagPipeline:
     settings = get_settings()
-    return RagPipeline(ai_service=get_ai_service(), vector_store=get_vector_store(), settings=settings)
+    return RagPipeline(
+        ai_service=get_ai_service(),
+        vector_store=get_vector_store(),
+        settings=settings,
+    )
 
 
 @lru_cache

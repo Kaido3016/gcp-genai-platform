@@ -4,12 +4,12 @@ version = "0.1.0"
 description = "Vertex AI / Gemini RAG + Agentic AI portfolio platform"
 requires-python = ">=3.11"
 dependencies = [
-    "fastapi>=0.115,<0.116",
+    "fastapi>=0.137.2,<0.138",
     "uvicorn[standard]>=0.32,<0.33",
     "pydantic>=2.9,<3",
     "pydantic-settings>=2.5,<3",
     "python-multipart>=0.0.12",
-    "pypdf>=5.0,<6",
+    "pypdf>=6.17,<7",
     "python-docx>=1.1,<2",
 ]
 
@@ -43,6 +43,8 @@ target-version = "py311"
 
 [tool.ruff.lint]
 select = ["E", "F", "I", "UP", "B"]
+ignore = ["E501", "I001"]
+extend-allowed-calls = ["fastapi.Depends"]
 
 [tool.mypy]
 python_version = "3.11"

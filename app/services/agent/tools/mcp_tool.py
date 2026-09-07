@@ -52,7 +52,8 @@ class _McpBackedTool(Tool):
     def _call_mcp(self, arguments: dict[str, Any]) -> Any:
         try:
             with MCPClient(
-                list(self._config.server_command), call_timeout_seconds=self._config.call_timeout_seconds
+                list(self._config.server_command),
+                call_timeout_seconds=self._config.call_timeout_seconds,
             ) as client:
                 return client.call_tool(self.mcp_tool_name, arguments)
         except MCPProtocolError as exc:
@@ -60,7 +61,9 @@ class _McpBackedTool(Tool):
             # transport-integrity failure, not a normal tool error — still
             # converted to our standard exception type rather than
             # propagating a raw protocol exception into the agent loop.
-            raise ToolExecutionError(f"MCP protocol error calling '{self.mcp_tool_name}': {exc}") from exc
+            raise ToolExecutionError(
+                f"MCP protocol error calling '{self.mcp_tool_name}': {exc}"
+            ) from exc
 
 
 class McpTextStatsTool(_McpBackedTool):

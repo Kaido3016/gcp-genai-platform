@@ -82,10 +82,14 @@ class AIService(ABC):
     on a concrete Vertex/mock client directly."""
 
     @abstractmethod
-    def generate_text(self, prompt: str, *, system_instruction: str | None = None) -> GenerationResult: ...
+    def generate_text(
+        self, prompt: str, *, system_instruction: str | None = None
+    ) -> GenerationResult: ...
 
     @abstractmethod
-    def generate_structured(self, prompt: str, *, response_schema: dict, system_instruction: str | None = None) -> GenerationResult: ...
+    def generate_structured(
+        self, prompt: str, *, response_schema: dict, system_instruction: str | None = None
+    ) -> GenerationResult: ...
 
     @abstractmethod
     def generate_with_tools(

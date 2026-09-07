@@ -65,8 +65,7 @@ class GCSDocumentStore(DocumentStore):
             from google.cloud import storage  # type: ignore
         except ImportError as exc:  # pragma: no cover
             raise DocumentProcessingError(
-                "google-cloud-storage is not installed. Run "
-                "`pip install google-cloud-storage`."
+                "google-cloud-storage is not installed. Run `pip install google-cloud-storage`."
             ) from exc
         self._client = storage.Client()
         self._bucket = self._client.bucket(bucket_name)

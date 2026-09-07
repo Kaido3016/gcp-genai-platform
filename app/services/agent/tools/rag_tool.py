@@ -24,7 +24,9 @@ class RagSearchTool(Tool):
     )
     allowed_for_all = True
 
-    def __init__(self, ai_service: AIService, vector_store: VectorStore, retrieval_config: RetrievalConfig):
+    def __init__(
+        self, ai_service: AIService, vector_store: VectorStore, retrieval_config: RetrievalConfig
+    ):
         self._ai = ai_service
         self._vectors = vector_store
         self._config = retrieval_config

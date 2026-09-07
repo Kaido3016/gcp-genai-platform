@@ -96,7 +96,8 @@ class EvaluationReport:
             "mean_groundedness": sum(c.groundedness for c in self.case_results) / n,
             "mean_citation_correctness": sum(c.citation_correctness for c in self.case_results) / n,
             "mean_retrieval_latency_ms": sum(c.retrieval_latency_ms for c in self.case_results) / n,
-            "mean_generation_latency_ms": sum(c.generation_latency_ms for c in self.case_results) / n,
+            "mean_generation_latency_ms": sum(c.generation_latency_ms for c in self.case_results)
+            / n,
             "tool_selection_accuracy": (
                 sum(1 for c in self.case_results if c.tool_selection_correct) / n
                 if any(c.tool_selection_correct is not None for c in self.case_results)

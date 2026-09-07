@@ -28,12 +28,14 @@ def test_rejects_non_json_output():
 
 def test_rejects_missing_required_field():
     import json
+
     with pytest.raises(StructuredOutputValidationError):
         DefaultAIService._validate_json_against_schema(json.dumps({"confidence": 0.9}), SCHEMA)
 
 
 def test_rejects_wrong_type():
     import json
+
     with pytest.raises(StructuredOutputValidationError):
         DefaultAIService._validate_json_against_schema(
             json.dumps({"label": "positive", "confidence": "high"}), SCHEMA
@@ -42,6 +44,7 @@ def test_rejects_wrong_type():
 
 def test_rejects_invalid_enum_value():
     import json
+
     with pytest.raises(StructuredOutputValidationError):
         DefaultAIService._validate_json_against_schema(
             json.dumps({"label": "sideways", "confidence": 0.5}), SCHEMA
@@ -50,6 +53,7 @@ def test_rejects_invalid_enum_value():
 
 def test_accepts_valid_payload():
     import json
+
     # Should not raise
     DefaultAIService._validate_json_against_schema(
         json.dumps({"label": "positive", "confidence": 0.87, "flagged": False}), SCHEMA

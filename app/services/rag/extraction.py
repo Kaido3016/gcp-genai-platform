@@ -41,7 +41,9 @@ def _extract_pdf(content: bytes) -> list[tuple[int | None, str]]:
             if text.strip():
                 pages.append((i, text))
         if not pages:
-            raise DocumentProcessingError("No extractable text found in PDF (possibly scanned/image-only).")
+            raise DocumentProcessingError(
+                "No extractable text found in PDF (possibly scanned/image-only)."
+            )
         return pages
     except DocumentProcessingError:
         raise

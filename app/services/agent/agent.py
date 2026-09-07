@@ -46,7 +46,9 @@ class Agent:
         steps: list[AgentStep] = []
         history: list[dict] = []
         tool_declarations = [
-            ToolDeclaration(name=t.name.value, description=t.description, parameters_schema=t.json_schema())
+            ToolDeclaration(
+                name=t.name.value, description=t.description, parameters_schema=t.json_schema()
+            )
             for t in self._tools.all()
         ]
         context = {"tenant_id": tenant_id, "is_privileged": False}
@@ -54,7 +56,10 @@ class Agent:
         model_used = "unknown"
         for iteration in range(1, self._config.max_iterations + 1):
             result = self._ai.generate_with_tools(
-                query, tools=tool_declarations, system_instruction=SYSTEM_INSTRUCTION, history=history
+                query,
+                tools=tool_declarations,
+                system_instruction=SYSTEM_INSTRUCTION,
+                history=history,
             )
             model_used = result.model
 
@@ -62,8 +67,11 @@ class Agent:
                 answer = result.text or "No answer could be produced."
                 steps.append(AgentStep(kind=AgentStepKind.FINAL_ANSWER, content=answer))
                 log_event(
-                    logger, logging.INFO, "agent_completed",
-                    iterations=iteration, stopped_reason="final_answer",
+                    logger,
+                    logging.INFO,
+                    "agent_completed",
+                    iterations=iteration,
+                    stopped_reason="final_answer",
                     duration_ms=round((time.perf_counter() - start) * 1000, 1),
                 )
                 return AgentResponse(
@@ -90,7 +98,9 @@ class Agent:
                     continue
                 tool_call = ToolCall(tool=tool_name, arguments=call.arguments, call_id=call_id)
                 steps.append(
-                    AgentStep(kind=AgentStepKind.TOOL_CALL, content=tool_name.value, tool_call=tool_call)
+                    AgentStep(
+                        kind=AgentStepKind.TOOL_CALL, content=tool_name.value, tool_call=tool_call
+                    )
                 )
 
                 tool_result: ToolResult = self._tools.execute(
@@ -103,7 +113,9 @@ class Agent:
                 steps.append(
                     AgentStep(
                         kind=AgentStepKind.TOOL_RESULT,
-                        content=str(tool_result.output if tool_result.success else tool_result.error),
+                        content=str(
+                            tool_result.output if tool_result.success else tool_result.error
+                        ),
                         tool_result=tool_result,
                     )
                 )
@@ -111,13 +123,17 @@ class Agent:
                     {
                         "role": "tool_result",
                         "tool": tool_name.value,
-                        "output": tool_result.output if tool_result.success else f"ERROR: {tool_result.error}",
+                        "output": tool_result.output
+                        if tool_result.success
+                        else f"ERROR: {tool_result.error}",
                     }
                 )
 
         # Iteration budget exhausted without a final answer.
         log_event(
-            logger, logging.WARNING, "agent_max_iterations",
+            logger,
+            logging.WARNING,
+            "agent_max_iterations",
             iterations=self._config.max_iterations,
             duration_ms=round((time.perf_counter() - start) * 1000, 1),
         )

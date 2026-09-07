@@ -20,7 +20,11 @@ from app.services.ai.service import build_ai_service
 from app.services.rag.ingestion import IngestionPipeline
 from app.services.rag.pipeline import RagPipeline
 from app.services.storage.document_store import DocumentStore, GCSDocumentStore, LocalDocumentStore
-from app.services.storage.vector_store import InMemoryVectorStore, VectorStore, VertexVectorSearchStore
+from app.services.storage.vector_store import (
+    InMemoryVectorStore,
+    VectorStore,
+    VertexVectorSearchStore,
+)
 
 
 @lru_cache

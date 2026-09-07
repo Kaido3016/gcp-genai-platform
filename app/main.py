@@ -64,7 +64,13 @@ async def platform_error_handler(request: Request, exc: PlatformError) -> JSONRe
     """Catch-all for our own exception hierarchy that a route didn't
     explicitly translate to an HTTPException — still a deliberate,
     typed handler, not a bare `except Exception`."""
-    log_event(logger, logging.ERROR, "unhandled_platform_error", error_type=type(exc).__name__, error=str(exc))
+    log_event(
+        logger,
+        logging.ERROR,
+        "unhandled_platform_error",
+        error_type=type(exc).__name__,
+        error=str(exc),
+    )
     return JSONResponse(status_code=500, content={"detail": f"{type(exc).__name__}: {exc}"})
 
 

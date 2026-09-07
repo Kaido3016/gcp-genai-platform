@@ -89,18 +89,22 @@ class LocalGenerativeClient:
         history: list[dict] | None = None,
     ) -> GenerationWithToolsResult:
         history = history or []
-        already_called = {
-            h.get("tool") for h in history if h.get("role") == "tool_result"
-        }
+        already_called = {h.get("tool") for h in history if h.get("role") == "tool_result"}
         tool_calls: list[ToolInvocationRequest] = []
 
         lower = prompt.lower()
         available = [t.name for t in tools]
 
-        if "calculator" in available and self._looks_like_math(lower) and "calculator" not in already_called:
+        if (
+            "calculator" in available
+            and self._looks_like_math(lower)
+            and "calculator" not in already_called
+        ):
             expr = self._extract_expression(prompt)
             if expr:
-                tool_calls.append(ToolInvocationRequest(name="calculator", arguments={"expression": expr}))
+                tool_calls.append(
+                    ToolInvocationRequest(name="calculator", arguments={"expression": expr})
+                )
         elif (
             "mcp_current_datetime" in available
             and self._looks_like_datetime_query(lower)
@@ -136,7 +140,11 @@ class LocalGenerativeClient:
 
     @staticmethod
     def _looks_like_datetime_query(text: str) -> bool:
-        return bool(re.search(r"\b(today|current date|current time|what time|what.s the date|right now)\b", text))
+        return bool(
+            re.search(
+                r"\b(today|current date|current time|what time|what.s the date|right now)\b", text
+            )
+        )
 
     @staticmethod
     def _extract_expression(text: str) -> str | None:

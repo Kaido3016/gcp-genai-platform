@@ -126,7 +126,9 @@ class DefaultAIService(AIService):
                 retryable_exceptions=(EmbeddingError,),
             )
         except Exception as exc:
-            log_event(logger, logging.ERROR, "embedding_failed", error=str(exc), text_count=len(texts))
+            log_event(
+                logger, logging.ERROR, "embedding_failed", error=str(exc), text_count=len(texts)
+            )
             raise
 
     @staticmethod
@@ -138,7 +140,9 @@ class DefaultAIService(AIService):
         try:
             data = json.loads(text)
         except json.JSONDecodeError as exc:
-            raise StructuredOutputValidationError(f"Model output was not valid JSON: {exc}") from exc
+            raise StructuredOutputValidationError(
+                f"Model output was not valid JSON: {exc}"
+            ) from exc
 
         if not isinstance(data, dict):
             raise StructuredOutputValidationError("Model output JSON must be an object.")
@@ -149,7 +153,13 @@ class DefaultAIService(AIService):
                 raise StructuredOutputValidationError(f"Missing required field: {field}")
 
         props = schema.get("properties", {})
-        type_map = {"string": str, "integer": int, "number": (int, float), "boolean": bool, "array": list}
+        type_map = {
+            "string": str,
+            "integer": int,
+            "number": (int, float),
+            "boolean": bool,
+            "array": list,
+        }
         for field, value in data.items():
             prop = props.get(field)
             if not prop:

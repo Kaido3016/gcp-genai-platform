@@ -39,7 +39,13 @@ def check(name: str, fn) -> None:
     start = time.perf_counter()
     try:
         fn()
-        checks.append({"name": name, "passed": True, "duration_ms": round((time.perf_counter() - start) * 1000, 1)})
+        checks.append(
+            {
+                "name": name,
+                "passed": True,
+                "duration_ms": round((time.perf_counter() - start) * 1000, 1),
+            }
+        )
         print(f"PASS  {name}")
     except Exception as exc:  # noqa: BLE001 - this script's whole job is to report failures, not hide them
         checks.append(
@@ -72,7 +78,12 @@ def check_server_tools_list():
 def check_server_text_stats():
     server = MCPServer(test_mode=False)
     resp = server.handle_request(
-        {"jsonrpc": "2.0", "id": 1, "method": "tools/call", "params": {"name": "text_stats", "arguments": {"text": "a b c"}}}
+        {
+            "jsonrpc": "2.0",
+            "id": 1,
+            "method": "tools/call",
+            "params": {"name": "text_stats", "arguments": {"text": "a b c"}},
+        }
     )
     assert resp["result"]["content"]["word_count"] == 3
 
@@ -80,7 +91,12 @@ def check_server_text_stats():
 def check_server_rejects_unknown_tool():
     server = MCPServer(test_mode=False)
     resp = server.handle_request(
-        {"jsonrpc": "2.0", "id": 1, "method": "tools/call", "params": {"name": "nope", "arguments": {}}}
+        {
+            "jsonrpc": "2.0",
+            "id": 1,
+            "method": "tools/call",
+            "params": {"name": "nope", "arguments": {}},
+        }
     )
     assert resp["error"]["code"] == -32001
 
@@ -88,7 +104,12 @@ def check_server_rejects_unknown_tool():
 def check_server_rejects_missing_field():
     server = MCPServer(test_mode=False)
     resp = server.handle_request(
-        {"jsonrpc": "2.0", "id": 1, "method": "tools/call", "params": {"name": "text_stats", "arguments": {}}}
+        {
+            "jsonrpc": "2.0",
+            "id": 1,
+            "method": "tools/call",
+            "params": {"name": "text_stats", "arguments": {}},
+        }
     )
     assert resp["error"]["code"] == -32602
 
@@ -96,7 +117,12 @@ def check_server_rejects_missing_field():
 def check_server_rejects_wrong_type():
     server = MCPServer(test_mode=False)
     resp = server.handle_request(
-        {"jsonrpc": "2.0", "id": 1, "method": "tools/call", "params": {"name": "text_stats", "arguments": {"text": 1}}}
+        {
+            "jsonrpc": "2.0",
+            "id": 1,
+            "method": "tools/call",
+            "params": {"name": "text_stats", "arguments": {"text": 1}},
+        }
     )
     assert resp["error"]["code"] == -32602
 
@@ -104,7 +130,12 @@ def check_server_rejects_wrong_type():
 def check_server_enforces_timeout():
     server = MCPServer(test_mode=True, tool_timeout_seconds=0.5)
     resp = server.handle_request(
-        {"jsonrpc": "2.0", "id": 1, "method": "tools/call", "params": {"name": "_slow_test_tool", "arguments": {"seconds": 3}}}
+        {
+            "jsonrpc": "2.0",
+            "id": 1,
+            "method": "tools/call",
+            "params": {"name": "_slow_test_tool", "arguments": {"seconds": 3}},
+        }
     )
     assert resp["error"]["code"] == -32003
 
@@ -127,7 +158,9 @@ def check_client_server_list_tools():
 
 def check_client_server_text_stats_call():
     with MCPClient(SERVER_COMMAND, call_timeout_seconds=3.0) as client:
-        result = client.call_tool("text_stats", {"text": "Model Context Protocol enables tool use."})
+        result = client.call_tool(
+            "text_stats", {"text": "Model Context Protocol enables tool use."}
+        )
         assert result["word_count"] == 6, result
 
 
@@ -183,19 +216,37 @@ def check_no_orphaned_processes_after_run():
 
 def main() -> None:
     check("server: initialize", check_server_initialize)
-    check("server: tools/list exposes exactly text_stats + current_datetime", check_server_tools_list)
+    check(
+        "server: tools/list exposes exactly text_stats + current_datetime", check_server_tools_list
+    )
     check("server: text_stats computes correct word count", check_server_text_stats)
-    check("server: unknown tool -> structured TOOL_NOT_FOUND error", check_server_rejects_unknown_tool)
+    check(
+        "server: unknown tool -> structured TOOL_NOT_FOUND error", check_server_rejects_unknown_tool
+    )
     check("server: missing required field -> INVALID_PARAMS", check_server_rejects_missing_field)
     check("server: wrong argument type -> INVALID_PARAMS", check_server_rejects_wrong_type)
     check("server: slow handler -> TOOL_TIMEOUT enforced", check_server_enforces_timeout)
-    check("server: test-only tool hidden outside test_mode", check_server_hides_test_tool_in_production_mode)
+    check(
+        "server: test-only tool hidden outside test_mode",
+        check_server_hides_test_tool_in_production_mode,
+    )
     check("client+subprocess: tools/list round trip", check_client_server_list_tools)
     check("client+subprocess: text_stats round trip", check_client_server_text_stats_call)
-    check("client+subprocess: current_datetime round trip", check_client_server_current_datetime_call)
-    check("client+subprocess: unknown tool raises ToolNotFoundError", check_client_raises_tool_not_found)
-    check("client+subprocess: invalid params raise ToolExecutionError", check_client_raises_on_invalid_params)
-    check("client: client-side timeout fires and kills subprocess", check_client_side_timeout_kills_subprocess)
+    check(
+        "client+subprocess: current_datetime round trip", check_client_server_current_datetime_call
+    )
+    check(
+        "client+subprocess: unknown tool raises ToolNotFoundError",
+        check_client_raises_tool_not_found,
+    )
+    check(
+        "client+subprocess: invalid params raise ToolExecutionError",
+        check_client_raises_on_invalid_params,
+    )
+    check(
+        "client: client-side timeout fires and kills subprocess",
+        check_client_side_timeout_kills_subprocess,
+    )
     check("no orphaned MCP server processes remain", check_no_orphaned_processes_after_run)
 
     passed = sum(1 for c in checks if c["passed"])

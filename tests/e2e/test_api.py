@@ -71,7 +71,13 @@ def test_get_document_status_404_for_unknown_id(client):
 
 
 def test_chat_returns_grounded_answer_with_citations(client):
-    files = {"file": ("guide.txt", b"Vertex AI Vector Search supports approximate nearest neighbor queries.", "text/plain")}
+    files = {
+        "file": (
+            "guide.txt",
+            b"Vertex AI Vector Search supports approximate nearest neighbor queries.",
+            "text/plain",
+        )
+    }
     client.post("/documents/upload", files=files)
 
     response = client.post("/chat", json={"query": "What does Vertex AI Vector Search support?"})

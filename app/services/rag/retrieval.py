@@ -78,9 +78,7 @@ def build_context_block(chunks: list[RetrievedChunk]) -> str:
     blocks = []
     for i, rc in enumerate(chunks, start=1):
         page_info = f", page {rc.chunk.page}" if rc.chunk.page is not None else ""
-        blocks.append(
-            f"[Source {i}: {rc.chunk.filename}{page_info}]\n{rc.chunk.text}"
-        )
+        blocks.append(f"[Source {i}: {rc.chunk.filename}{page_info}]\n{rc.chunk.text}")
     return "\n\n".join(blocks)
 
 

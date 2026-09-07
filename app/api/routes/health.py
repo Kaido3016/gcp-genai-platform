@@ -19,7 +19,9 @@ def liveness() -> HealthResponse:
     """Liveness probe: process is up. Cheap, no dependency checks."""
     settings = get_settings()
     return HealthResponse(
-        status="ok", environment=settings.environment, live_vertex_ai=settings.gcp.use_live_vertex_ai
+        status="ok",
+        environment=settings.environment,
+        live_vertex_ai=settings.gcp.use_live_vertex_ai,
     )
 
 
@@ -32,5 +34,7 @@ def readiness() -> HealthResponse:
     external to check."""
     settings = get_settings()
     return HealthResponse(
-        status="ok", environment=settings.environment, live_vertex_ai=settings.gcp.use_live_vertex_ai
+        status="ok",
+        environment=settings.environment,
+        live_vertex_ai=settings.gcp.use_live_vertex_ai,
     )

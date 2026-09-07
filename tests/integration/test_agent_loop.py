@@ -17,7 +17,12 @@ def test_agent_uses_calculator_tool_for_math_query(agent):
 def test_agent_uses_rag_tool_for_document_query(agent, vector_store, ai_service):
     from app.schemas.documents import Chunk
 
-    chunk = Chunk(document_id="d1", filename="policy.txt", text="Refunds are processed within 5 business days.", source="policy.txt")
+    chunk = Chunk(
+        document_id="d1",
+        filename="policy.txt",
+        text="Refunds are processed within 5 business days.",
+        source="policy.txt",
+    )
     vector = ai_service.embed_texts([chunk.text]).vectors[0]
     vector_store.upsert([chunk], [vector])
 

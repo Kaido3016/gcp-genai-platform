@@ -54,4 +54,6 @@ def load_dataset(path: Path = DATASET_PATH) -> EvalDataset:
         for c in raw["cases"]
     ]
     agent_cases = [AgentCase(**c) for c in raw.get("agent_cases", [])]
-    return EvalDataset(name=raw["dataset_name"], corpus=corpus, rag_cases=rag_cases, agent_cases=agent_cases)
+    return EvalDataset(
+        name=raw["dataset_name"], corpus=corpus, rag_cases=rag_cases, agent_cases=agent_cases
+    )

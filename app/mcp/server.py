@@ -66,8 +66,7 @@ def _validate_params(schema: dict[str, Any], params: dict[str, Any]) -> str | No
         expected = type_map.get(prop.get("type", ""))
         if expected and not isinstance(value, expected):
             return (
-                f"field '{field_name}' expected type {prop.get('type')}, "
-                f"got {type(value).__name__}"
+                f"field '{field_name}' expected type {prop.get('type')}, got {type(value).__name__}"
             )
         max_length = prop.get("maxLength")
         if max_length is not None and isinstance(value, str) and len(value) > max_length:

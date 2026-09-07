@@ -17,12 +17,18 @@ from app.services.agent.tools.mcp_tool import McpCurrentDatetimeTool, McpTextSta
 
 def _agent(ai_service) -> Agent:
     mcp_config = McpConfig(
-        enabled=True, server_command=(sys.executable, "-m", "app.mcp.server"), call_timeout_seconds=3.0
+        enabled=True,
+        server_command=(sys.executable, "-m", "app.mcp.server"),
+        call_timeout_seconds=3.0,
     )
     registry = ToolRegistry(
         tools=[CalculatorTool(), McpTextStatsTool(mcp_config), McpCurrentDatetimeTool(mcp_config)]
     )
-    return Agent(ai_service, registry, AgentConfig(max_iterations=4, tool_timeout_seconds=5.0, max_tool_calls_per_turn=4))
+    return Agent(
+        ai_service,
+        registry,
+        AgentConfig(max_iterations=4, tool_timeout_seconds=5.0, max_tool_calls_per_turn=4),
+    )
 
 
 def test_agent_uses_mcp_current_datetime_tool_for_date_query(ai_service):

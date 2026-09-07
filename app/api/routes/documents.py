@@ -18,7 +18,9 @@ async def upload_document(
 ) -> DocumentUploadResponse:
     content = await file.read()
     try:
-        result = pipeline.ingest(filename=file.filename or "unnamed", content=content, tenant_id=tenant_id)
+        result = pipeline.ingest(
+            filename=file.filename or "unnamed", content=content, tenant_id=tenant_id
+        )
     except DocumentValidationError as exc:
         raise HTTPException(status_code=422, detail=str(exc)) from exc
     except DocumentProcessingError as exc:

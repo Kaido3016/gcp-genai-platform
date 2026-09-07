@@ -82,7 +82,9 @@ def run() -> EvaluationReport:
                 grounded_flag=response.grounded,
                 expected_grounded=case.expect_grounded,
             ),
-            citation_correctness=citation_correctness(cited_document_ids, case.relevant_document_ids),
+            citation_correctness=citation_correctness(
+                cited_document_ids, case.relevant_document_ids
+            ),
             retrieval_latency_ms=total_latency_ms,  # combined retrieval+generation; see note below
             generation_latency_ms=response.latency_ms,
         )

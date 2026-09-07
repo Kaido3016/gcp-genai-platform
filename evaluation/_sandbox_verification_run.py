@@ -78,18 +78,16 @@ def main() -> None:
             reverse=True,
         )
         retrieval_latency_ms = (time.perf_counter() - t0) * 1000
-        above_threshold = [
-            doc_id for score, doc_id in scored if score >= SIMILARITY_THRESHOLD
-        ][:TOP_K]
+        above_threshold = [doc_id for score, doc_id in scored if score >= SIMILARITY_THRESHOLD][
+            :TOP_K
+        ]
 
         relevant = set(case["relevant_document_ids"])
         grounded = len(above_threshold) > 0
         expect_grounded = case["expect_grounded"]
 
         if grounded:
-            cited_text = " ".join(
-                d["text"] for d in corpus if d["document_id"] in above_threshold
-            )
+            cited_text = " ".join(d["text"] for d in corpus if d["document_id"] in above_threshold)
             answer = f"Based on the retrieved context: {cited_text[:300]}"
         else:
             answer = "No supporting documents were found for this query."

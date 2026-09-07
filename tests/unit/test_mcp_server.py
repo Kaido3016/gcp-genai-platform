@@ -42,26 +42,43 @@ def test_text_stats_success(server):
 
 def test_current_datetime_success(server):
     resp = server.handle_request(
-        {"jsonrpc": "2.0", "id": 4, "method": "tools/call", "params": {"name": "current_datetime", "arguments": {}}}
+        {
+            "jsonrpc": "2.0",
+            "id": 4,
+            "method": "tools/call",
+            "params": {"name": "current_datetime", "arguments": {}},
+        }
     )
     assert "iso8601_utc" in resp["result"]["content"]
 
 
 def test_unknown_tool_returns_structured_error_not_exception(server):
     resp = server.handle_request(
-        {"jsonrpc": "2.0", "id": 5, "method": "tools/call", "params": {"name": "delete_everything", "arguments": {}}}
+        {
+            "jsonrpc": "2.0",
+            "id": 5,
+            "method": "tools/call",
+            "params": {"name": "delete_everything", "arguments": {}},
+        }
     )
     assert resp["error"]["code"] == -32001
 
 
 def test_unknown_method_returns_structured_error(server):
-    resp = server.handle_request({"jsonrpc": "2.0", "id": 6, "method": "shutdown_server", "params": {}})
+    resp = server.handle_request(
+        {"jsonrpc": "2.0", "id": 6, "method": "shutdown_server", "params": {}}
+    )
     assert resp["error"]["code"] == -32601
 
 
 def test_missing_required_field_rejected(server):
     resp = server.handle_request(
-        {"jsonrpc": "2.0", "id": 7, "method": "tools/call", "params": {"name": "text_stats", "arguments": {}}}
+        {
+            "jsonrpc": "2.0",
+            "id": 7,
+            "method": "tools/call",
+            "params": {"name": "text_stats", "arguments": {}},
+        }
     )
     assert resp["error"]["code"] == -32602
 
@@ -105,7 +122,9 @@ def test_tool_timeout_enforced(server):
 
 def test_slow_test_tool_not_exposed_outside_test_mode():
     prod_server = MCPServer(tool_timeout_seconds=1.0, test_mode=False)
-    resp = prod_server.handle_request({"jsonrpc": "2.0", "id": 11, "method": "tools/list", "params": {}})
+    resp = prod_server.handle_request(
+        {"jsonrpc": "2.0", "id": 11, "method": "tools/list", "params": {}}
+    )
     names = {t["name"] for t in resp["result"]["tools"]}
     assert "_slow_test_tool" not in names
 

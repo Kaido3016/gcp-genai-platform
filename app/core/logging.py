@@ -15,9 +15,7 @@ import sys
 import time
 from typing import Any
 
-_request_id_ctx: contextvars.ContextVar[str] = contextvars.ContextVar(
-    "request_id", default="-"
-)
+_request_id_ctx: contextvars.ContextVar[str] = contextvars.ContextVar("request_id", default="-")
 
 
 def set_request_id(request_id: str) -> None:

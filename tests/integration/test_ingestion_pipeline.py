@@ -42,12 +42,16 @@ def test_ingest_empty_pdf_text_marks_failed_status(ingestion_pipeline, monkeypat
     import app.services.rag.ingestion as ingestion_module
 
     def fake_extract_text(content, content_type):
-        raise DocumentProcessingError("No extractable text found in PDF (possibly scanned/image-only).")
+        raise DocumentProcessingError(
+            "No extractable text found in PDF (possibly scanned/image-only)."
+        )
 
     monkeypatch.setattr(ingestion_module, "extract_text", fake_extract_text)
 
     with pytest.raises(DocumentProcessingError):
-        ingestion_pipeline.ingest(filename="scanned.pdf", content=b"%PDF-1.4 minimal", tenant_id=None)
+        ingestion_pipeline.ingest(
+            filename="scanned.pdf", content=b"%PDF-1.4 minimal", tenant_id=None
+        )
 
     # The document should be registered with FAILED status, not silently dropped.
     doc_ids = list(ingestion_pipeline._registry.keys())
@@ -62,8 +66,12 @@ def test_get_status_returns_none_for_unknown_document(ingestion_pipeline):
 
 
 def test_multiple_documents_are_isolated_by_tenant(ingestion_pipeline, vector_store):
-    ingestion_pipeline.ingest(filename="a.txt", content=b"Content about apples.", tenant_id="tenant-a")
-    ingestion_pipeline.ingest(filename="b.txt", content=b"Content about bananas.", tenant_id="tenant-b")
+    ingestion_pipeline.ingest(
+        filename="a.txt", content=b"Content about apples.", tenant_id="tenant-a"
+    )
+    ingestion_pipeline.ingest(
+        filename="b.txt", content=b"Content about bananas.", tenant_id="tenant-b"
+    )
 
     results_a = vector_store.query([0.0] * 768, top_k=10, tenant_id="tenant-a")
     results_b = vector_store.query([0.0] * 768, top_k=10, tenant_id="tenant-b")

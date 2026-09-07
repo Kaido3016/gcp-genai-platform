@@ -26,9 +26,7 @@ class RagPipeline:
         retrieval_cfg = self._settings.retrieval
 
         embedding = self._ai.embed_texts([query]).vectors[0]
-        candidates = self._vectors.query(
-            embedding, top_k=retrieval_cfg.top_k, tenant_id=tenant_id
-        )
+        candidates = self._vectors.query(embedding, top_k=retrieval_cfg.top_k, tenant_id=tenant_id)
         ranked = filter_and_rank(candidates, retrieval_cfg)
 
         if not ranked:

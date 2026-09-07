@@ -4,12 +4,16 @@ from app.services.rag.retrieval import build_context_block, build_grounded_promp
 
 
 def _rc(chunk_id: str, text: str, score: float, page: int | None = None) -> RetrievedChunk:
-    chunk = Chunk(chunk_id=chunk_id, document_id="d1", filename="f.txt", text=text, source="s", page=page)
+    chunk = Chunk(
+        chunk_id=chunk_id, document_id="d1", filename="f.txt", text=text, source="s", page=page
+    )
     return RetrievedChunk(chunk=chunk, similarity_score=score)
 
 
 def test_filters_below_threshold():
-    config = RetrievalConfig(similarity_threshold=0.6, max_context_chunks=10, dedupe_similarity_threshold=0.97)
+    config = RetrievalConfig(
+        similarity_threshold=0.6, max_context_chunks=10, dedupe_similarity_threshold=0.97
+    )
     candidates = [_rc("c1", "alpha bravo charlie", 0.9), _rc("c2", "delta echo foxtrot", 0.3)]
     result = filter_and_rank(candidates, config)
     assert len(result) == 1
@@ -17,7 +21,9 @@ def test_filters_below_threshold():
 
 
 def test_deduplicates_near_identical_chunks():
-    config = RetrievalConfig(similarity_threshold=0.0, max_context_chunks=10, dedupe_similarity_threshold=0.9)
+    config = RetrievalConfig(
+        similarity_threshold=0.0, max_context_chunks=10, dedupe_similarity_threshold=0.9
+    )
     candidates = [
         _rc("c1", "the quick brown fox jumps over the lazy dog", 0.95),
         _rc("c2", "the quick brown fox jumps over the lazy dog!", 0.90),
@@ -31,7 +37,9 @@ def test_deduplicates_near_identical_chunks():
 
 
 def test_caps_at_max_context_chunks():
-    config = RetrievalConfig(similarity_threshold=0.0, max_context_chunks=2, dedupe_similarity_threshold=0.97)
+    config = RetrievalConfig(
+        similarity_threshold=0.0, max_context_chunks=2, dedupe_similarity_threshold=0.97
+    )
     candidates = [_rc(f"c{i}", f"unique text block number {i}", 0.5 + i * 0.01) for i in range(5)]
     result = filter_and_rank(candidates, config)
     assert len(result) == 2

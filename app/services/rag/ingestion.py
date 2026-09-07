@@ -63,7 +63,9 @@ class IngestionPipeline:
         try:
             content_type = validate_upload(filename, content, self._settings.upload)
         except DocumentValidationError as exc:
-            log_event(logger, logging.WARNING, "upload_rejected", filename=filename, reason=str(exc))
+            log_event(
+                logger, logging.WARNING, "upload_rejected", filename=filename, reason=str(exc)
+            )
             raise
 
         metadata = DocumentMetadata(

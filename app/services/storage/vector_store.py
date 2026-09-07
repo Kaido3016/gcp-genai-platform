@@ -1,17 +1,4 @@
-"""Vector store abstraction.
-
-Decision (see docs/RAG_DESIGN.md for full writeup): the production target
-is Vertex AI Vector Search, chosen over the managed RAG Engine corpus and
-over Vertex AI Search because it's the lowest-level primitive that still
-demonstrates real retrieval engineering (index building, similarity
-thresholds, metadata filtering) rather than delegating that work to a
-black-box product.
-
-For this environment (no GCP project/network), an in-memory vector store
-implements the exact same interface so the RAG pipeline is fully testable
-and runnable locally. Swapping to `VertexVectorSearchStore` is a config
-change, not a rewrite.
-"""
+"""Vector store abstraction."""
 
 from __future__ import annotations
 
@@ -44,26 +31,17 @@ class VectorStore(ABC):
 def _cosine_similarity(a: list[float], b: list[float]) -> float:
     if len(a) != len(b):
         raise VectorStoreError("Vector dimension mismatch during similarity computation.")
-    dot = sum(x * y for x, y in zip(a, b))
+    dot = sum(x * y for x, y in zip(a, b, strict=True))
     norm_a = math.sqrt(sum(x * x for x in a))
     norm_b = math.sqrt(sum(y * y for y in b))
     if norm_a == 0 or norm_b == 0:
         return 0.0
-    # Raw cosine similarity, clipped to [0, 1] (negative cosine treated as
-    # "not similar" rather than rescaled). Rescaling cos in [-1,1] to [0,1]
-    # via (cos+1)/2 was tried and rejected during RAG_DESIGN validation: it
-    # gives unrelated text a 0.5 similarity floor, which made the default
-    # threshold nearly meaningless. See docs/RAG_DESIGN.md "Similarity
-    # scoring" for the measured comparison.
     cos = dot / (norm_a * norm_b)
     return max(cos, 0.0)
 
 
 class InMemoryVectorStore(VectorStore):
-    """Reference/test implementation. O(n) linear scan — fine for the
-    document volumes exercised in this portfolio's demo and test suite;
-    not intended as a production substitute for Vector Search's ANN index.
-    """
+    """Reference/test implementation using an O(n) linear scan."""
 
     def __init__(self) -> None:
         self._chunks: dict[str, Chunk] = {}
@@ -72,7 +50,7 @@ class InMemoryVectorStore(VectorStore):
     def upsert(self, chunks: list[Chunk], vectors: list[list[float]]) -> None:
         if len(chunks) != len(vectors):
             raise VectorStoreError("chunks and vectors must be the same length.")
-        for chunk, vector in zip(chunks, vectors):
+        for chunk, vector in zip(chunks, vectors, strict=True):
             self._chunks[chunk.chunk_id] = chunk
             self._vectors[chunk.chunk_id] = vector
 
@@ -104,14 +82,7 @@ class InMemoryVectorStore(VectorStore):
 
 
 class VertexVectorSearchStore(VectorStore):
-    """Live Vertex AI Vector Search adapter.
-
-    Real, runnable code against `google-cloud-aiplatform` — NOT exercised
-    in this environment (requires a deployed index + endpoint in a real
-    GCP project). See docs/DEPLOYMENT.md for the `gcloud`/Terraform steps
-    to create the index and endpoint referenced by
-    GCP_VECTOR_INDEX_ID / GCP_VECTOR_INDEX_ENDPOINT_ID.
-    """
+    """Live Vertex AI Vector Search adapter."""
 
     def __init__(self, *, project: str, location: str, index_id: str, index_endpoint_id: str):
         try:
@@ -127,15 +98,12 @@ class VertexVectorSearchStore(VectorStore):
         self._index = aiplatform.MatchingEngineIndex(index_id)
         self._endpoint = aiplatform.MatchingEngineIndexEndpoint(index_endpoint_id)
         self._deployed_index_id = index_id
-        # chunk metadata is not stored in the vector index itself; a real
-        # deployment needs a side lookup (e.g. Firestore/BigQuery) keyed by
-        # chunk_id, referenced here but not re-implemented redundantly.
         self._metadata_lookup: dict[str, Chunk] = {}
 
     def upsert(self, chunks: list[Chunk], vectors: list[list[float]]) -> None:
         datapoints = [
             {"datapoint_id": chunk.chunk_id, "feature_vector": vector}
-            for chunk, vector in zip(chunks, vectors)
+            for chunk, vector in zip(chunks, vectors, strict=True)
         ]
         try:
             self._index.upsert_datapoints(datapoints=datapoints)
@@ -170,7 +138,7 @@ class VertexVectorSearchStore(VectorStore):
                 continue
             if document_id is not None and chunk.document_id != document_id:
                 continue
-            similarity = 1.0 - (neighbor.distance / 2.0)  # cosine distance -> [0,1]
+            similarity = 1.0 - (neighbor.distance / 2.0)
             results.append(RetrievedChunk(chunk=chunk, similarity_score=similarity))
         return results
 
